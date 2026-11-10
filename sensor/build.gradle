@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+    id 'com.google.protobuf' version '0.9.4'
+    id 'idea'
+    id 'eclipse'
+}
+
+group 'hr.fer.rassus'
+version '1'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+
+repositories {
+    maven { // The google mirror is less flaky than mavenCentral()
+        url "https://maven-central.storage-download.googleapis.com/maven2/" 
+    }
+    mavenCentral()
+    mavenLocal()
+}
+
+
+dependencies {
+    //################ GRPC ################
+	  implementation 'io.grpc:grpc-netty-shaded:1.68.0'
+	  implementation 'io.grpc:grpc-protobuf:1.68.0'
+	  implementation 'io.grpc:grpc-services:1.68.0'
+	  implementation 'io.grpc:grpc-stub:1.68.0'
+	  compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+    //################ GRPC ################
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:3.0.0'
+    implementation 'com.squareup.retrofit2:converter-jackson:3.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.4'
+}
+
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code.
+sourceSets {
+    main {
+    	// Remember to refresh gradle project in Eclipse (F5) 
+        java {
+            srcDirs 'build/generated/source/proto/main/grpc'
+            srcDirs 'build/generated/source/proto/main/java'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+//################ GRPC ################
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code.
+protobuf {
+  protoc {
+    artifact = "com.google.protobuf:protoc:3.25.5"
+  }
+  plugins {
+    grpc {
+      artifact = 'io.grpc:protoc-gen-grpc-java:1.68.0'
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+    }
+    all().each {
+      it.group = 'build'
+    }
+  }
+}
+//################ GRPC ################
+task runSensor(type: JavaExec) {
+    group = "exec"
+    description = "Run sensor with JavaExecTask"
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = "hr.fer.tel.rassus.sensor.SensorApp"
+}
